@@ -6,7 +6,7 @@ import os
 
 class CSVToRedisImporter:
     # def __init__(self, redis_host='localhost', redis_port=6379, redis_db=0, password=None):
-    def __init__(self, redis_host='106.14.164.40', redis_port=6378, redis_db=3, password="0x2F746bC70f72aAF3340B8BbFd254fd91a3996218"):
+    def __init__(self, redis_host='106.14.164.40', redis_port=6378, redis_db=4, password="0x2F746bC70f72aAF3340B8BbFd254fd91a3996218"):
 
         self.redis = redis.Redis(
             host=redis_host, port=redis_port, db=redis_db,
@@ -100,7 +100,7 @@ class CSVToRedisImporter:
                     'pe': str(pe),
                     'update_time': update_time
                 }
-                pipe.hset(f"stock:hash:{stock_code}", mapping=stock_info)
+                pipe.hset(f"stock:{stock_code}", mapping=stock_info)
                 
                 # 数据结构2: 有序集合 - 按价格排序（只添加有效价格）
                 if price > 0:
