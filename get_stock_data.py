@@ -4,7 +4,7 @@ import pandas as pd
 import json
 import sys
 import os
-from stock_redis_manager import query_all_stock_codes,batch_update_stock_kdata ,batch_update_redis_hash,query_redis_hash
+from stock_redis_manager import stock_should_update, query_all_stock_codes,batch_update_stock_kdata ,batch_update_redis_hash,query_redis_hash
 
 # 添加当前目录到路径
 sys.path.append(os.path.abspath('.'))
@@ -45,11 +45,13 @@ def get_stock_k_data(stock_code='000002',frequency='1d',count=1):
     
 
 def update_all_stock_k_data(limit=-1,count=10,frequency='1d'):
-    stock_codes = query_all_stock_codes(limit=limit)  # 获取前5只股票
+    stock_codes = query_all_stock_codes(limit=limit)  # 获取前limit只股票
 
     for stock_code in stock_codes:
 
-    # stock_code='000002'
+        should_update=stock_should_update(stock_code=stock_code,frequency=frequency)
+        if not should_update:
+            continue
         df=get_stock_k_data(stock_code=stock_code,frequency=frequency,count=count)
         if df is None:
             continue
@@ -110,7 +112,7 @@ def update_all_stock_k_data(limit=-1,count=10,frequency='1d'):
 if __name__ == "__main__":
     # update_all_stock_price(-1)
     # update_stock_price(stock_codes=['601939'])
-    update_all_stock_k_data(100)
+    update_all_stock_k_data(-1)
     
 
 

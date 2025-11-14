@@ -10,6 +10,38 @@ from redis_utils import get_redis
 data_base_num=4
 r = get_redis(data_base=data_base_num)
 
+def stock_should_update(stock_code,frequency='1d', r=None):
+    """
+    查询
+    :param stock_code: 股票代码（6位数字）
+    :param field: 具体的字段，如果为None则返回所有字段
+    :param r: Redis连接对象，如果为None则创建新的连接
+    :return: 查询结果
+    """
+    if r is None:
+        r = get_redis(data_base=data_base_num)
+
+    # 构造hash key
+    hash_key = f"stocks:k:{stock_code.zfill(6)}:{frequency}"
+
+    try:
+        if frequency is not None:
+            # 获取特定字段
+            keys = r.hkeys(hash_key)
+            from datetime import datetime,date
+
+# 获取当前日期时间并格式化
+            current_datetime = datetime.combine(date.today(), datetime.min.time())
+            formatted_time = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
+            # print(date)
+            res=str(formatted_time) not in keys
+            print(f'{stock_code} should update {res}')
+            
+            return formatted_time not in keys
+    except Exception as e:
+        print(f"查询hash失败: {e}")
+        return None
+    
 def query_redis_hash(stock_code, field=None, r=None):
     """
     查询Redis hash数据
@@ -53,7 +85,7 @@ def query_all_stock_codes(r=None,limit=-1):
         while True:
             cursor, keys = r.scan(cursor, match='stock:*', count=1000)
             for key in keys:
-                print(key)
+                # print(key)
                 # if key.isdigit() :
                 all_codes.append(key.replace("stock:",""))
                 if len(all_codes)==limit:
@@ -274,6 +306,7 @@ def delete_redis_hash(stock_code, r=None):
 
 # 使用示例
 if __name__ == "__main__":
+    stock_code="000002"
     # 查询整个hash
     data = query_redis_hash("000002")
     print("Hash 000002 的所有数据:", data)
@@ -287,7 +320,8 @@ if __name__ == "__main__":
     prices=json.dumps(prices)
     print(prices)
     # 修改字段
-    # update_redis_hash_field("000001", "price", prices,r=r)
+    update_redis_hash_field("000002", "price", prices,r=r)
+    # batch_update_stock_kdata()
     # 查询并打印所有数据
     # print("\n" + "="*50)
     # query_and_print_all_data(r)
@@ -303,6 +337,8 @@ if __name__ == "__main__":
     updates.append(update)
            
     # batch_update_redis_hash(updates, r=None)
+    stock_should_update(stock_code,frequency='1d')
+
 
     
 
