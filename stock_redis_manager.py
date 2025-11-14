@@ -30,14 +30,15 @@ def stock_should_update(stock_code,frequency='1d', r=None):
             keys = r.hkeys(hash_key)
             from datetime import datetime,date
 
-# 获取当前日期时间并格式化
+            # 获取当前日期时间并格式化
             current_datetime = datetime.combine(date.today(), datetime.min.time())
             formatted_time = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
             # print(date)
             res=str(formatted_time) not in keys
-            print(f'{stock_code} should update {res}')
+            if res:
+                print(f'{stock_code} should update {res}')
             
-            return formatted_time not in keys
+            return res
     except Exception as e:
         print(f"查询hash失败: {e}")
         return None
@@ -261,6 +262,7 @@ def batch_update_stock_kdata(updates ,frequency='1d',r=None):
 
     try:
         pipe = r.pipeline()
+        hash_key=''
         for update in updates:
             stock_code = update['stock_code']
             field = update['field']
@@ -268,11 +270,19 @@ def batch_update_stock_kdata(updates ,frequency='1d',r=None):
 
             # 构造hash key
             hash_key = f"stocks:k:{stock_code.zfill(6)}:{frequency}"
+            
+            
             pipe.hset(hash_key, field, value)
 
+        
+        
         # 执行批量操作
         results = pipe.execute()
         print(f"批量更新完成，共更新 {len(results)} 个字段")
+
+        count = r.hlen(hash_key)
+        print('总日线数量',count)
+        
         return True
 
     except Exception as e:
